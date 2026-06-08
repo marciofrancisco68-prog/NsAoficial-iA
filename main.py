@@ -1,28 +1,29 @@
-from crewai import Agent, Task, Crew
+import streamlit as st
+import os
+from crewai import Agent, Task, Crew, Process
 from crewai_tools import DuckDuckGoSearchTool
 
-# Ferramenta de busca na web
-search_tool = DuckDuckGoSearchTool()
+# Configura a chave de API
+os.environ["GOOGLE_API_KEY"] = os.getenv("GOOGLE_API_KEY")
 
-# Criando o Agente
-pesquisador = Agent(
-    role='Pesquisador Autônomo',
-    goal='Encontrar as principais novidades sobre tecnologia hoje',
-    backstory='Você é um especialista em monitorar a web e resumir notícias.',
-    tools=[search_tool],
-    verbose=True
-)
+def rodar_agente(pergunta):
+    search_tool = DuckDuckGoSearchTool()
+    pesquisador = Agent(
+        role='Especialista Nsaoficial iA',
+        goal='Fornecer análises com a qualidade Nsaoficial',
+        backstory='Você é a IA oficial da Nsaoficial iA, focada em precisão.',
+        tools=[search_tool]
+    )
+    tarefa = Task(description=pergunta, expected_output='Um resumo de 3 pontos', agent=pesquisador)
+    equipe = Crew(agents=[pesquisador], tasks=[tarefa], process=Process.sequential)
+    return equipe.kickoff()
 
-# Criando a tarefa
-tarefa = Task(
-    description='Faça uma busca sobre avanços em IA em 2026 e resuma em 3 pontos.',
-    expected_output='Um resumo de 3 pontos com as principais notícias.',
-    agent=pesquisador
-)
+# Interface Streamlit
+st.title("🤖 Painel Nsaoficial iA")
+query = st.text_input("O que a Nsaoficial iA deve pesquisar?")
 
-# Executando
-equipe = Crew(agents=[pesquisador], tasks=[tarefa])
-resultado = equipe.kickoff()
-
-print("Resultado da pesquisa:")
-print(resultado)
+if st.button("Executar Pesquisa"):
+    with st.spinner('A Nsaoficial iA está trabalhando...'):
+        resultado = rodar_agente(query)
+        st.success("Pesquisa concluída!")
+        st.write(resultado)
